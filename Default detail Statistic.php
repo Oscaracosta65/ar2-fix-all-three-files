@@ -892,7 +892,7 @@ echo '<p class="lstResult">'
     . '<span class="circlesPb">' . htmlspecialchars((string) $posSeven, ENT_QUOTES, 'UTF-8') . '</span>'
     . '</span>';
 
-/** MO Millions Main (MOH) and Double Play (MOI) - 5 main balls + Millions Ball **/
+/** MO Millions Main (MOH) and Double Play (MOI) - 6 main balls + Millions Ball **/
 } elseif ($gId === 'MOH' || $gId === 'MOI') {
 echo '<p class="lstResult">'
     . '<span class="circles">' . htmlspecialchars((string) $posOne, ENT_QUOTES, 'UTF-8') . '</span>'
@@ -900,10 +900,11 @@ echo '<p class="lstResult">'
     . '<span class="circles">' . htmlspecialchars((string) $posThree, ENT_QUOTES, 'UTF-8') . '</span>'
     . '<span class="circles">' . htmlspecialchars((string) $posFour, ENT_QUOTES, 'UTF-8') . '</span>'
     . '<span class="circles">' . htmlspecialchars((string) $posFive, ENT_QUOTES, 'UTF-8') . '</span>'
+    . '<span class="circles">' . htmlspecialchars((string) $posSix, ENT_QUOTES, 'UTF-8') . '</span>'
     . '</p>'
     . '<span class="le-result-meta" aria-label="Millions Ball">'
     . '<span class="pplay">Millions Ball:</span> '
-    . '<span class="circlesPb">' . htmlspecialchars((string) $posSix, ENT_QUOTES, 'UTF-8') . '</span>'
+    . '<span class="circlesPb">' . htmlspecialchars((string) $posSeven, ENT_QUOTES, 'UTF-8') . '</span>'
     . '</span>';
 
                 

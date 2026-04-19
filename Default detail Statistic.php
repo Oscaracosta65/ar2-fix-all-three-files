@@ -894,9 +894,9 @@ echo '<p class="lstResult">'
 
 /** MO Millions Main (MOH) and Double Play (MOI) - 6 main balls + Millions Ball **/
 } elseif ($gId === 'MOH' || $gId === 'MOI') {
-    // Prefer the dedicated seventh column; fall back to parsing draw_results if empty
+    // Prefer the dedicated seventh column; fall back to parsing draw_results if empty or default '0'
     $mohBonus = trim((string) $posSeven);
-    if ($mohBonus === '') {
+    if ($mohBonus === '' || $mohBonus === '0') {
         $drParts = array_values(array_filter(
             preg_split('/\s*[-,\s\.]\s*/', trim((string) $draw_results)),
             'strlen'
@@ -1546,10 +1546,9 @@ if ($gId === '801') {
         }else if($gId === 'IL4'){ 
             include "anhisIL4.php";
         /** Straight 6+1 with 40+40 numbers - Arkansas - Lotto **/
-        }else if($gId === 'AR2'){ 
-            $stAbrev = $stateAbrevRaw;  // bridge: anhisAR2.php uses $stAbrev, parent uses $stateAbrevRaw
-            $stName  = $stateNameRaw;   // bridge: anhisAR2.php uses $stName,  parent uses $stateNameRaw
-            include "anhisAR2.php";
+        }else if($gId === 'AR2'){
+            // AR2 top-card already rendered by the parent (line ~1119 above).
+            // anhisAR2.php is the Arkansas state hub; do not include it here.
         /** Straight 4+1 with 35 and Cash Ball 25 numbers - KY Cash Ball **/
         }else if($gId === 'KY1'){ 
             include "anhisKY1.php";            

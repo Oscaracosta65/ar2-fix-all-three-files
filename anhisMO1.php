@@ -1,8 +1,8 @@
 <?php
 /**
- * LottoExpert.net — Results Intelligence
- * Game: Missouri MO1 — Pick 6 (numbers 01–44, no bonus ball)
- * Platform: Joomla 5.x · PHP 8.1+ · UTF-8 · ES5-only JavaScript
+ * LottoExpert.net ï¿½ Results Intelligence
+ * Game: Missouri MO1 ï¿½ Pick 6 (numbers 01ï¿½44, no bonus ball)
+ * Platform: Joomla 5.x ï¿½ PHP 8.1+ ï¿½ UTF-8 ï¿½ ES5-only JavaScript
  *
  * GAME CONFIG:
  *   game_id      = MO1
@@ -12,10 +12,10 @@
  *   archive      = /lottery-archives-pick6
  *
  * UPSTREAM VARIABLES REQUIRED:
- *   $stateName   (string) — full state name
- *   $stateAbrev  (string) — state abbreviation
- *   $gName       (string) — game name
- *   $dbCol       (string) — database table name
+ *   $stateName   (string) ï¿½ full state name
+ *   $stateAbrev  (string) ï¿½ state abbreviation
+ *   $gName       (string) ï¿½ game name
+ *   $dbCol       (string) ï¿½ database table name
  */
 
 defined('_JEXEC') or die;
@@ -31,7 +31,7 @@ $input = $app->input;
 $db    = Factory::getDbo();
 $user  = Factory::getUser();
 
-/* -- Game configuration — MO1 Pick 6, range 01–44, no bonus --------------- */
+/* -- Game configuration ï¿½ MO1 Pick 6, range 01ï¿½44, no bonus --------------- */
 // When included from Default detail Statistic.php, $gId is already set by the
 // parent (e.g. 'MOH' or 'MOI'). Capture it before this file overwrites $gId.
 $_parentGid   = (isset($gId) && $gId !== '') ? (string) $gId : 'MO1';
@@ -54,10 +54,10 @@ $doc->addCustomTag('<link rel="alternate" hreflang="en" href="' . htmlspecialcha
 $doc->addCustomTag('<link rel="alternate" hreflang="x-default" href="' . htmlspecialchars($canonicalNoQuery, ENT_QUOTES, 'UTF-8') . '" />');
 
 if (isset($stateName, $gName) && (string) $stateName !== '' && (string) $gName !== '') {
-    $doc->setTitle('Results Intelligence — ' . (string) $stateName . ' ' . (string) $gName . ' | LottoExpert.net');
+    $doc->setTitle('Results Intelligence ï¿½ ' . (string) $stateName . ' ' . (string) $gName . ' | LottoExpert.net');
     $doc->setDescription(
         (string) $stateName . ' ' . (string) $gName
-        . ' — number frequency, hot numbers, cold numbers, draw history recency, and analytical results intelligence.'
+        . ' ï¿½ number frequency, hot numbers, cold numbers, draw history recency, and analytical results intelligence.'
         . ' Transparent lottery analysis on LottoExpert.net.'
     );
 }
@@ -103,10 +103,10 @@ function leFmtDate(?string $date): string
 function leFmtDateLong(?string $date): string
 {
     if (!$date) {
-        return '—';
+        return 'ï¿½';
     }
     $ts = strtotime($date);
-    return ($ts === false) ? '—' : date('F j, Y', $ts);
+    return ($ts === false) ? 'ï¿½' : date('F j, Y', $ts);
 }
 
 function lePad2(string $value): string
@@ -201,7 +201,7 @@ function leCommaList(array $items): string
         return $v !== '';
     }));
     if (empty($items)) {
-        return '—';
+        return 'ï¿½';
     }
     return implode(', ', $items);
 }
@@ -314,14 +314,17 @@ $p3 = $lr ? trim((string) ($lr['third']  ?? '')) : '';
 $p4 = $lr ? trim((string) ($lr['fourth'] ?? '')) : '';
 $p5 = $lr ? trim((string) ($lr['fifth']  ?? '')) : '';
 $p6 = $lr ? trim((string) ($lr['sixth']  ?? '')) : '';
-$p7 = $hasBonusBall ? ($lr ? trim((string) ($lr['seventh'] ?? '')) : '') : '';
-// Fallback: parse draw_results for the 7th token when seventh column is empty
+// Treat '0' (DB default for non-bonus rows) same as empty so the fallback fires
+$_raw7 = $hasBonusBall ? ($lr ? trim((string) ($lr['seventh'] ?? '')) : '') : '';
+$p7    = ($hasBonusBall && $_raw7 !== '' && $_raw7 !== '0') ? $_raw7 : '';
+// Fallback: parse draw_results for the 7th token when seventh column is empty or default '0'
 if ($hasBonusBall && $p7 === '' && $lr !== null) {
     $_drParts = array_values(array_filter(
         preg_split('/\s*[-,\s\.]\s*/', trim((string) ($lr['draw_results'] ?? ''))),
         'strlen'
     ));
-    $p7 = $_drParts[6] ?? '';
+    $_dr7 = $_drParts[6] ?? '';
+    $p7 = ($_dr7 !== '' && $_dr7 !== '0') ? $_dr7 : '';
 }
 
 $latestMainBalls = [$p1, $p2, $p3, $p4, $p5, $p6];
@@ -453,7 +456,7 @@ if ($drawDate !== '') {
         ];
     }
     // Millions Ball row for MOH / MOI
-    if ($hasBonusBall && $p7 !== '') {
+    if ($hasBonusBall && $p7 !== '' && $p7 !== '0') {
         $prevDateB = leGetPreviousOccurrence($db, (string) $dbCol, $gameId, $drawDate, $p7, [$bonusBallCol]);
         $drawsAgoB = leGetDrawingsSinceDate($db, (string) $dbCol, $gameId, $prevDateB, $drawDate);
         $drawHistoryRows[] = [
@@ -700,10 +703,10 @@ $jsonLdDataset = [
 }
 
 .skai-ball--bonus{
-  background:linear-gradient(180deg,#FFD700 0%,#FFA500 100%);
-  color:#1a1a1a;
-  border:1px solid rgba(180,100,0,.30);
-  box-shadow:0 10px 20px rgba(180,100,0,.18), inset 0 1px 0 rgba(255,255,255,.60);
+  background:linear-gradient(180deg,#FF4444 0%,#CC0000 100%);
+  color:#FFFFFF;
+  border:1px solid rgba(150,0,0,.35);
+  box-shadow:0 10px 20px rgba(150,0,0,.20), inset 0 1px 0 rgba(255,255,255,.40);
 }
 
 .skai-ball-sep{
@@ -1440,7 +1443,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
             <span class="skai-ball skai-ball--main"><?php echo htmlspecialchars(lePad2($p4), ENT_QUOTES, 'UTF-8'); ?></span>
             <span class="skai-ball skai-ball--main"><?php echo htmlspecialchars(lePad2($p5), ENT_QUOTES, 'UTF-8'); ?></span>
             <span class="skai-ball skai-ball--main"><?php echo htmlspecialchars(lePad2($p6), ENT_QUOTES, 'UTF-8'); ?></span>
-            <?php if ($hasBonusBall && $p7 !== '') : ?>
+            <?php if ($hasBonusBall && $p7 !== '' && $p7 !== '0') : ?>
             <span class="skai-ball-sep" aria-hidden="true">+</span>
             <span class="skai-ball skai-ball--bonus"><?php echo htmlspecialchars(lePad2($p7), ENT_QUOTES, 'UTF-8'); ?></span>
             <?php endif; ?>

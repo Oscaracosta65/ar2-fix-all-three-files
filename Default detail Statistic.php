@@ -35,7 +35,17 @@ if ($gNameRaw !== 'Multi-Win Lotto') {
 $gNameRaw = ucwords(trim($gNameRaw));
 
 // CHG: whitelist state abbrev to avoid table-name injection
-$stateAbrevRaw = strtolower(trim($input->getString('st', 'fl')));
+// Prefer explicit `st`; if absent/invalid, derive from `stn` before safe fallback.
+$stateAbrevRaw = strtolower(trim($input->getString('st', '')));
+if (!preg_match('/^[a-z]{2}$/', $stateAbrevRaw)) {
+    $stateAbrevFromName = [
+        'arkansas' => 'ar',
+        'missouri' => 'mo',
+        'florida' => 'fl',
+    ];
+    $stateNameKey = strtolower(trim((string) str_replace('-', ' ', $stateNameRaw)));
+    $stateAbrevRaw = $stateAbrevFromName[$stateNameKey] ?? '';
+}
 if (!preg_match('/^[a-z]{2}$/', $stateAbrevRaw)) {
     $stateAbrevRaw = 'fl';
 }
@@ -1568,8 +1578,8 @@ if ($gId === '801') {
         /** Straight 6 with 44 numbers - The Pick - AZ  **/
         }else if($gId === 'AZ3'){ 
             include "anhisAZ3.php";
-        /** Straight 6 with 44 numbers - MO Lotto  **/
-        }else if($gId === 'MO1'){ 
+        /** Straight 6 with 44 numbers - MO Lotto / MO Millions Main / MO Millions Double Play  **/
+        }else if($gId === 'MO1' || $gId === 'MOH' || $gId === 'MOI'){ 
             include "anhisMO1.php";
         /** Straight 6 with 46 numbers - NJ Double Play, IN Hoosier Lotto, NJ Pick 6 Lotto **/
         }else if($gId === 'NJ7'|| $gId === 'IN1' || $gId === 'NJ6' ){ 
@@ -1622,7 +1632,7 @@ if ($gId === '801') {
             
             
         /** STRAIGHT 5 with 39 numbers - Take 5 Midday & Evening, MI Fantasy 5, MO Show me cash **/
-        }else if($gId === 'NY5' || $gId === 'NY2' || $gId === 'MI6' || $gId === 'MD3' || $gId === '133' || $gId === 'KY6' || $gId === 'OH3' || $gId === 'MO4'){ 
+        }else if($gId === 'NY5' || $gId === 'NY2' || $gId === 'MI6' || $gId === '133' || $gId === 'KY6' || $gId === 'OH3' || $gId === 'MO4'){ 
             include "anhisNYtake5.php";
         /** STRAIGHT 5 with 42 numbers -  **/
         }else if($gId === 'WA6'){ 

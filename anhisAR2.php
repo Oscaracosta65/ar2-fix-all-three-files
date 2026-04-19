@@ -111,6 +111,16 @@ if(empty($stName)){
     $stAbrev = 'fl';
 }
 } // end guard: !isset($stAbrev)
+
+/**
+ * Guard: when included from Default detail Statistic.php as game-analysis content
+ * ($gId is already 'AR2'), bail out immediately. The top-card was already rendered
+ * by the parent; we must NOT output the full state-hub below.
+ */
+if (isset($gId) && $gId === 'AR2') {
+    return;
+}
+
 $doc = Factory::getDocument();
 
 // PHASE 1 ? STEP 7A: keep RAW state values for SQL/URLs; escape only on output

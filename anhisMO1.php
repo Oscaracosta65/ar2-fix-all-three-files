@@ -220,7 +220,8 @@ function leFetchRecentDraws(\Joomla\Database\DatabaseDriver $db, string $dbCol, 
             $db->quoteName('fourth'),
             $db->quoteName('fifth'),
             $db->quoteName('sixth'),
-            $db->quoteName('seventh'), // Millions Ball (MOH / MOI)
+            $db->quoteName('seventh'),      // Millions Ball column (MOH / MOI)
+            $db->quoteName('draw_results'), // fallback source for bonus ball
         ])
         ->from($db->quoteName($dbCol))
         ->where($db->quoteName('game_id') . ' = ' . $db->quote($gameId))
@@ -314,6 +315,14 @@ $p4 = $lr ? trim((string) ($lr['fourth'] ?? '')) : '';
 $p5 = $lr ? trim((string) ($lr['fifth']  ?? '')) : '';
 $p6 = $lr ? trim((string) ($lr['sixth']  ?? '')) : '';
 $p7 = $hasBonusBall ? ($lr ? trim((string) ($lr['seventh'] ?? '')) : '') : '';
+// Fallback: parse draw_results for the 7th token when seventh column is empty
+if ($hasBonusBall && $p7 === '' && $lr !== null) {
+    $_drParts = array_values(array_filter(
+        preg_split('/\s*[-,\s\.]\s*/', trim((string) ($lr['draw_results'] ?? ''))),
+        'strlen'
+    ));
+    $p7 = $_drParts[6] ?? '';
+}
 
 $latestMainBalls = [$p1, $p2, $p3, $p4, $p5, $p6];
 $logo = (isset($stateAbrev, $gName))

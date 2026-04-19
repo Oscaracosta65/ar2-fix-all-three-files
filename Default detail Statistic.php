@@ -894,6 +894,15 @@ echo '<p class="lstResult">'
 
 /** MO Millions Main (MOH) and Double Play (MOI) - 6 main balls + Millions Ball **/
 } elseif ($gId === 'MOH' || $gId === 'MOI') {
+    // Prefer the dedicated seventh column; fall back to parsing draw_results if empty
+    $mohBonus = trim((string) $posSeven);
+    if ($mohBonus === '') {
+        $drParts = array_values(array_filter(
+            preg_split('/\s*[-,\s\.]\s*/', trim((string) $draw_results)),
+            'strlen'
+        ));
+        $mohBonus = $drParts[6] ?? '';
+    }
 echo '<p class="lstResult">'
     . '<span class="circles">' . htmlspecialchars((string) $posOne, ENT_QUOTES, 'UTF-8') . '</span>'
     . '<span class="circles">' . htmlspecialchars((string) $posTwo, ENT_QUOTES, 'UTF-8') . '</span>'
@@ -901,11 +910,13 @@ echo '<p class="lstResult">'
     . '<span class="circles">' . htmlspecialchars((string) $posFour, ENT_QUOTES, 'UTF-8') . '</span>'
     . '<span class="circles">' . htmlspecialchars((string) $posFive, ENT_QUOTES, 'UTF-8') . '</span>'
     . '<span class="circles">' . htmlspecialchars((string) $posSix, ENT_QUOTES, 'UTF-8') . '</span>'
-    . '</p>'
-    . '<span class="le-result-meta" aria-label="Millions Ball">'
-    . '<span class="pplay">Millions Ball:</span> '
-    . '<span class="circlesPb">' . htmlspecialchars((string) $posSeven, ENT_QUOTES, 'UTF-8') . '</span>'
-    . '</span>';
+    . '</p>';
+if ($mohBonus !== '') {
+    echo '<span class="le-result-meta" aria-label="Millions Ball">'
+        . '<span class="pplay">Millions Ball:</span> '
+        . '<span class="circlesPb">' . htmlspecialchars($mohBonus, ENT_QUOTES, 'UTF-8') . '</span>'
+        . '</span>';
+}
 
                 
                 

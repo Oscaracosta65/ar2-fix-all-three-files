@@ -32,12 +32,17 @@ $db    = Factory::getDbo();
 $user  = Factory::getUser();
 
 /* -- Game configuration — MO1 Pick 6, range 01–44, no bonus --------------- */
-$gameId        = 'MO1';
+// When included from Default detail Statistic.php, $gId is already set by the
+// parent (e.g. 'MOH' or 'MOI'). Capture it before this file overwrites $gId.
+$_parentGid   = (isset($gId) && $gId !== '') ? (string) $gId : 'MO1';
+$isMoMillions = ($_parentGid === 'MOH' || $_parentGid === 'MOI');
+$gameId        = $isMoMillions ? $_parentGid : 'MO1';
 $mainBallCols  = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth'];
 $mainBallCount = 6;
 $mainBallMin   = 1;
 $mainBallMax   = 44;
-$hasBonusBall  = false;
+$hasBonusBall  = $isMoMillions;
+$bonusBallCol  = 'seventh'; // Millions Ball column for MOH / MOI
 $archiveRoute  = '/lottery-archives-pick6';
 $loadPosition  = 'Pick6Wheels';
 
@@ -215,6 +220,7 @@ function leFetchRecentDraws(\Joomla\Database\DatabaseDriver $db, string $dbCol, 
             $db->quoteName('fourth'),
             $db->quoteName('fifth'),
             $db->quoteName('sixth'),
+            $db->quoteName('seventh'), // Millions Ball (MOH / MOI)
         ])
         ->from($db->quoteName($dbCol))
         ->where($db->quoteName('game_id') . ' = ' . $db->quote($gameId))
@@ -307,6 +313,7 @@ $p3 = $lr ? trim((string) ($lr['third']  ?? '')) : '';
 $p4 = $lr ? trim((string) ($lr['fourth'] ?? '')) : '';
 $p5 = $lr ? trim((string) ($lr['fifth']  ?? '')) : '';
 $p6 = $lr ? trim((string) ($lr['sixth']  ?? '')) : '';
+$p7 = $hasBonusBall ? ($lr ? trim((string) ($lr['seventh'] ?? '')) : '') : '';
 
 $latestMainBalls = [$p1, $p2, $p3, $p4, $p5, $p6];
 $logo = (isset($stateAbrev, $gName))
@@ -434,6 +441,17 @@ if ($drawDate !== '') {
             'prevDate' => $prevDate,
             'drawsAgo' => $drawsAgo,
             'isBonus'  => false,
+        ];
+    }
+    // Millions Ball row for MOH / MOI
+    if ($hasBonusBall && $p7 !== '') {
+        $prevDateB = leGetPreviousOccurrence($db, (string) $dbCol, $gameId, $drawDate, $p7, [$bonusBallCol]);
+        $drawsAgoB = leGetDrawingsSinceDate($db, (string) $dbCol, $gameId, $prevDateB, $drawDate);
+        $drawHistoryRows[] = [
+            'label'    => 'MB ' . lePad2($p7),
+            'prevDate' => $prevDateB,
+            'drawsAgo' => $drawsAgoB,
+            'isBonus'  => true,
         ];
     }
 }
@@ -670,6 +688,20 @@ $jsonLdDataset = [
   color:var(--deep-navy);
   border:1px solid rgba(10,26,51,.14);
   box-shadow:0 10px 20px rgba(10,26,51,.12), inset 0 1px 0 rgba(255,255,255,.90);
+}
+
+.skai-ball--bonus{
+  background:linear-gradient(180deg,#FFD700 0%,#FFA500 100%);
+  color:#1a1a1a;
+  border:1px solid rgba(180,100,0,.30);
+  box-shadow:0 10px 20px rgba(180,100,0,.18), inset 0 1px 0 rgba(255,255,255,.60);
+}
+
+.skai-ball-sep{
+  font-size:20px;
+  font-weight:900;
+  color:rgba(255,255,255,.70);
+  padding:0 4px;
 }
 
 .skai-hero-actions{
@@ -1399,13 +1431,17 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
             <span class="skai-ball skai-ball--main"><?php echo htmlspecialchars(lePad2($p4), ENT_QUOTES, 'UTF-8'); ?></span>
             <span class="skai-ball skai-ball--main"><?php echo htmlspecialchars(lePad2($p5), ENT_QUOTES, 'UTF-8'); ?></span>
             <span class="skai-ball skai-ball--main"><?php echo htmlspecialchars(lePad2($p6), ENT_QUOTES, 'UTF-8'); ?></span>
+            <?php if ($hasBonusBall && $p7 !== '') : ?>
+            <span class="skai-ball-sep" aria-hidden="true">+</span>
+            <span class="skai-ball skai-ball--bonus"><?php echo htmlspecialchars(lePad2($p7), ENT_QUOTES, 'UTF-8'); ?></span>
+            <?php endif; ?>
           </div>
 
           <div class="skai-hero-actions" aria-label="Primary actions">
-            <a class="skai-btn skai-btn--primary" href="/picking-winning-numbers/artificial-intelligence/skai-lottery-prediction?gameId=MO1">
+            <a class="skai-btn skai-btn--primary" href="/picking-winning-numbers/artificial-intelligence/skai-lottery-prediction?gameId=<?php echo rawurlencode($gameId); ?>">
               Open SKAI Analysis
             </a>
-            <a class="skai-btn skai-btn--secondary" href="/picking-winning-numbers/artificial-intelligence/ai-powered-predictions?game_id=MO1">
+            <a class="skai-btn skai-btn--secondary" href="/picking-winning-numbers/artificial-intelligence/ai-powered-predictions?game_id=<?php echo rawurlencode($gameId); ?>">
               AI Predictions
             </a>
             <a class="skai-btn skai-btn--secondary" href="#frequency-deep-dive">
@@ -1414,9 +1450,9 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
           </div>
 
           <div class="skai-advanced-links" aria-label="Advanced tools">
-            <a class="skai-mini-link" href="/picking-winning-numbers/artificial-intelligence/skip-and-hit-analysis?game_id=MO1">Skip &amp; Hit Analysis</a>
-            <a class="skai-mini-link" href="/picking-winning-numbers/artificial-intelligence/markov-chain-monte-carlo-mcmc-analysis?game_id=MO1">MCMC Markov Analysis</a>
-            <a class="skai-mini-link" href="/all-lottery-heatmaps?gameId=MO1">Heatmap Analysis</a>
+            <a class="skai-mini-link" href="/picking-winning-numbers/artificial-intelligence/skip-and-hit-analysis?game_id=<?php echo rawurlencode($gameId); ?>">Skip &amp; Hit Analysis</a>
+            <a class="skai-mini-link" href="/picking-winning-numbers/artificial-intelligence/markov-chain-monte-carlo-mcmc-analysis?game_id=<?php echo rawurlencode($gameId); ?>">MCMC Markov Analysis</a>
+            <a class="skai-mini-link" href="/all-lottery-heatmaps?gameId=<?php echo rawurlencode($gameId); ?>">Heatmap Analysis</a>
           </div>
         </div>
 
@@ -1794,7 +1830,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
             <p class="skai-tool-copy">
               Best next step for a broader multi-signal view. Use this after reviewing frequency and recency to move into the main SKAI intelligence workflow.
             </p>
-            <a class="skai-tool-cta" href="/picking-winning-numbers/artificial-intelligence/skai-lottery-prediction?gameId=MO1">Open SKAI Analysis</a>
+            <a class="skai-tool-cta" href="/picking-winning-numbers/artificial-intelligence/skai-lottery-prediction?gameId=<?php echo rawurlencode($gameId); ?>">Open SKAI Analysis</a>
           </div>
         </article>
 
@@ -1804,7 +1840,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
             <p class="skai-tool-copy">
               Use when you want a model-driven complement to the historical view shown on this page.
             </p>
-            <a class="skai-tool-cta" href="/picking-winning-numbers/artificial-intelligence/ai-powered-predictions?game_id=MO1">Open AI Predictions</a>
+            <a class="skai-tool-cta" href="/picking-winning-numbers/artificial-intelligence/ai-powered-predictions?game_id=<?php echo rawurlencode($gameId); ?>">Open AI Predictions</a>
           </div>
         </article>
 
@@ -1814,14 +1850,14 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
             <p class="skai-tool-copy">
               Useful for users who want to compare appearance spacing and interruption behavior after reviewing current frequency.
             </p>
-            <a class="skai-tool-cta" href="/picking-winning-numbers/artificial-intelligence/skip-and-hit-analysis?game_id=MO1">Open Skip &amp; Hit</a>
+            <a class="skai-tool-cta" href="/picking-winning-numbers/artificial-intelligence/skip-and-hit-analysis?game_id=<?php echo rawurlencode($gameId); ?>">Open Skip &amp; Hit</a>
           </div>
         </article>
       </div>
 
       <div class="skai-utility-grid">
-        <a class="skai-utility-link" href="/picking-winning-numbers/artificial-intelligence/markov-chain-monte-carlo-mcmc-analysis?game_id=MO1">MCMC Markov Analysis</a>
-        <a class="skai-utility-link" href="/all-lottery-heatmaps?gameId=MO1">Heatmap Analysis</a>
+        <a class="skai-utility-link" href="/picking-winning-numbers/artificial-intelligence/markov-chain-monte-carlo-mcmc-analysis?game_id=<?php echo rawurlencode($gameId); ?>">MCMC Markov Analysis</a>
+        <a class="skai-utility-link" href="/all-lottery-heatmaps?gameId=<?php echo rawurlencode($gameId); ?>">Heatmap Analysis</a>
         <a class="skai-utility-link" href="<?php echo htmlspecialchars($archiveRoute, ENT_QUOTES, 'UTF-8'); ?>?gId=<?php echo rawurlencode($gId); ?>&amp;stateName=<?php echo rawurlencode((string) $stateName); ?>&amp;gName=<?php echo rawurlencode((string) $gName); ?>&amp;sTn=<?php echo rawurlencode(strtolower((string) $stateAbrev)); ?>">Lottery Archives</a>
         <a class="skai-utility-link" href="/lowest-drawn-number-analysis?gId=<?php echo rawurlencode($gId); ?>&amp;stateName=<?php echo rawurlencode((string) $stateName); ?>&amp;gName=<?php echo rawurlencode((string) $gName); ?>&amp;sTn=<?php echo rawurlencode(strtolower((string) $stateAbrev)); ?>">Lowest Number Analysis</a>
       </div>
@@ -1841,7 +1877,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
 
     <div class="skai-section-body">
       <div class="skai-method-note">
-        <strong>Interpretation guidance:</strong> Frequency, recency, and spacing can provide useful context for reviewing draw history, but they should be treated as descriptive signals rather than guarantees. The purpose of this page is to make the recent behavior of <?php echo htmlspecialchars((string) $stateName . ' ' . (string) $gName, ENT_QUOTES, 'UTF-8'); ?> easier to understand, compare, and carry into deeper SKAI analysis. All six main-ball positions are counted together within a single unified pool (01&ndash;44). There is no separate bonus ball for this game.
+        <strong>Interpretation guidance:</strong> Frequency, recency, and spacing can provide useful context for reviewing draw history, but they should be treated as descriptive signals rather than guarantees. The purpose of this page is to make the recent behavior of <?php echo htmlspecialchars((string) $stateName . ' ' . (string) $gName, ENT_QUOTES, 'UTF-8'); ?> easier to understand, compare, and carry into deeper SKAI analysis. All six main-ball positions are counted together within a single unified pool (01&ndash;44). <?php if ($hasBonusBall): ?>The Millions Ball (bonus number) is drawn from a separate pool and is shown separately from the six main numbers.<?php else: ?>There is no separate bonus ball for this game.<?php endif; ?>
       </div>
     </div>
   </section>

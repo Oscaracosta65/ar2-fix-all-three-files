@@ -1994,7 +1994,7 @@ echo '</a>';
                 /** MO Millions Main (MOH) and Double Play (MOI) - 6 balls + Millions Ball **/
                 }else if($gId === 'MOH' || $gId === 'MOI'){
                     
-                    echo '<p class="lstResult">Last Result: '.date('m-d-Y',strtotime($dDate)).'<br /><br /><span class="circles">'.$posOne.'</span><span class="circles">'.$posTwo.'</span><span class="circles">'.$posThree.'</span><span class="circles">'.$posFour.'</span><span class="circles">'.$posFive.'</span><span class="circles">'.$posSix.'</span>&nbsp;&nbsp;<span class="circlesPb">'.$posSeven.'</span><br /><span class="pplay">Millions Ball: <span class="circlesFb">'.$posSeven.'</span></span></p>';
+                    echo '<p class="lstResult">Last Result: '.date('m-d-Y',strtotime($dDate)).'<br /><br /><span class="circles">'.$posOne.'</span><span class="circles">'.$posTwo.'</span><span class="circles">'.$posThree.'</span><span class="circles">'.$posFour.'</span><span class="circles">'.$posFive.'</span><span class="circles">'.$posSix.'</span><br /><span class="pplay">Millions Ball: <span class="circlesFb">'.$posSeven.'</span></span></p>';
                 
                 
                 /** LOTTO GAMES **/

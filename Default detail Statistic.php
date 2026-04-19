@@ -1114,7 +1114,7 @@ echo '<p class="lstResult">'
                         . '<span class="circles">' . htmlspecialchars((string) $posFour, ENT_QUOTES, 'UTF-8') . '</span>'
                         . '<span class="circles">' . htmlspecialchars((string) $posFive, ENT_QUOTES, 'UTF-8') . '</span>'
                         . '<span class="circles">' . htmlspecialchars((string) $posSix, ENT_QUOTES, 'UTF-8') . '</span>'
-                        . '<span class="le-result-meta"><span class="pplay">Extra Shot:</span> '
+                        . '<span class="le-result-meta"><span class="pplay">Bonus:</span> '
                         . htmlspecialchars((string) $posSeven, ENT_QUOTES, 'UTF-8')
                         . '</span>'
                         . '</p>';

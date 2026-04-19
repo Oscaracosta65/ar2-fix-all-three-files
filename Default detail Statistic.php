@@ -892,6 +892,20 @@ echo '<p class="lstResult">'
     . '<span class="circlesPb">' . htmlspecialchars((string) $posSeven, ENT_QUOTES, 'UTF-8') . '</span>'
     . '</span>';
 
+/** MO Millions Main (MOH) and Double Play (MOI) - 5 main balls + Millions Ball **/
+} elseif ($gId === 'MOH' || $gId === 'MOI') {
+echo '<p class="lstResult">'
+    . '<span class="circles">' . htmlspecialchars((string) $posOne, ENT_QUOTES, 'UTF-8') . '</span>'
+    . '<span class="circles">' . htmlspecialchars((string) $posTwo, ENT_QUOTES, 'UTF-8') . '</span>'
+    . '<span class="circles">' . htmlspecialchars((string) $posThree, ENT_QUOTES, 'UTF-8') . '</span>'
+    . '<span class="circles">' . htmlspecialchars((string) $posFour, ENT_QUOTES, 'UTF-8') . '</span>'
+    . '<span class="circles">' . htmlspecialchars((string) $posFive, ENT_QUOTES, 'UTF-8') . '</span>'
+    . '</p>'
+    . '<span class="le-result-meta" aria-label="Millions Ball">'
+    . '<span class="pplay">Millions Ball:</span> '
+    . '<span class="circlesPb">' . htmlspecialchars((string) $posSix, ENT_QUOTES, 'UTF-8') . '</span>'
+    . '</span>';
+
                 
                 
                 
@@ -1521,6 +1535,8 @@ if ($gId === '801') {
             include "anhisIL4.php";
         /** Straight 6+1 with 40+40 numbers - Arkansas - Lotto **/
         }else if($gId === 'AR2'){ 
+            $stAbrev = $stateAbrevRaw;  // bridge: anhisAR2.php uses $stAbrev, parent uses $stateAbrevRaw
+            $stName  = $stateNameRaw;   // bridge: anhisAR2.php uses $stName,  parent uses $stateNameRaw
             include "anhisAR2.php";
         /** Straight 4+1 with 35 and Cash Ball 25 numbers - KY Cash Ball **/
         }else if($gId === 'KY1'){ 

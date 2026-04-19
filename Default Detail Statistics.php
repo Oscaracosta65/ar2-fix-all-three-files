@@ -1991,6 +1991,12 @@ echo '</a>';
                     echo '<p class="lstResult">Last Result: '.date('m-d-Y',strtotime($dDate)).'<br /><br /><span class="circles">'.$posOne.'</span><span class="circles">'.$posTwo.'</span><span class="circles">'.$posThree.'</span><span class="circles">'.$posFour.'</span><span class="circles">'.$posFive.'</span><span class="circles">'.$posSix.'</span><br /><span class="pplay">Bonus:  <span class="circlesFb">'.$posSeven.'</span></span></p>';
                 
                 
+                /** MO Millions Main (MOH) and Double Play (MOI) - 5 balls + Millions Ball **/
+                }else if($gId === 'MOH' || $gId === 'MOI'){
+                    
+                    echo '<p class="lstResult">Last Result: '.date('m-d-Y',strtotime($dDate)).'<br /><br /><span class="circles">'.$posOne.'</span><span class="circles">'.$posTwo.'</span><span class="circles">'.$posThree.'</span><span class="circles">'.$posFour.'</span><span class="circles">'.$posFive.'</span>&nbsp;&nbsp;<span class="circlesPb">'.$posSix.'</span><br /><span class="pplay">Millions Ball: <span class="circlesFb">'.$posSix.'</span></span></p>';
+                
+                
                 /** LOTTO GAMES **/
                 }else if(($gName === 'Lotto' && $stName != 'Illinois' && $stName != 'New York') || ($gName === 'Hoosier Lotto' && $stName === 'Indiana')){
                     
@@ -3348,6 +3354,10 @@ echo '</a>';
  
                 
                                 /** ALL OTHER GAMES **/
+                }else if($gId === 'MOH' || $gId === 'MOI'){
+                    /** MO Millions Main / Double Play - 5 balls + Millions Ball stored in posSix **/
+                    echo '<p class="lstResult">Last Result: '.date('m-d-Y',strtotime($dDate)).'<br /><span class="circles">'.$posOne.'</span><span class="circles">'.$posTwo.'</span><span class="circles">'.$posThree.'</span><span class="circles">'.$posFour.'</span><span class="circles">'.$posFive.'</span><br /></p>';
+                    echo '<p class="lstResult">Millions Ball: <span class="circlesPb">'.htmlspecialchars((string)$posSix, ENT_QUOTES, 'UTF-8').'</span><br /></p>';
                 }else if (preg_match('/^\s*(Cash\s*Pop|Pop|Pick\s*1)/i', $gName)) {
                     // Single-ball: render strictly from draw_results to keep any leading zero
                     $num = trim((string)$dResult);

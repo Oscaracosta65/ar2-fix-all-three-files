@@ -1993,8 +1993,23 @@ echo '</a>';
                 
                 /** MO Millions Main (MOH) and Double Play (MOI) - 6 balls + Millions Ball **/
                 }else if($gId === 'MOH' || $gId === 'MOI'){
-                    
-                    echo '<p class="lstResult">Last Result: '.date('m-d-Y',strtotime($dDate)).'<br /><br /><span class="circles">'.$posOne.'</span><span class="circles">'.$posTwo.'</span><span class="circles">'.$posThree.'</span><span class="circles">'.$posFour.'</span><span class="circles">'.$posFive.'</span><span class="circles">'.$posSix.'</span><br /><span class="pplay">Millions Ball: <span class="circlesFb">'.$posSeven.'</span></span></p>';
+                    $moTileBonus = trim((string) $posSeven);
+                    if ($moTileBonus === '' || $moTileBonus === '0') {
+                        $_moTileRaw = trim((string) $dResult);
+                        if (preg_match('/\bbonus[:\s]+(\d{1,2})\b/i', $_moTileRaw, $_moTileBm)) {
+                            $_moTileVal = (string) (int) $_moTileBm[1];
+                            $moTileBonus = ($_moTileVal !== '0') ? $_moTileVal : '';
+                        }
+                        if ($moTileBonus === '') {
+                            $_moTileParts = array_values(array_filter(
+                                preg_split('/[\s,\-\.]+/', $_moTileRaw),
+                                static function ($t) { return is_numeric(trim($t)); }
+                            ));
+                            $_moTile7 = isset($_moTileParts[6]) ? trim($_moTileParts[6]) : '';
+                            $moTileBonus = ($_moTile7 !== '' && $_moTile7 !== '0') ? $_moTile7 : '';
+                        }
+                    }
+                    echo '<p class="lstResult">Last Result: '.date('m-d-Y',strtotime($dDate)).'<br /><br /><span class="circles">'.$posOne.'</span><span class="circles">'.$posTwo.'</span><span class="circles">'.$posThree.'</span><span class="circles">'.$posFour.'</span><span class="circles">'.$posFive.'</span><span class="circles">'.$posSix.'</span><br /><span class="pplay">Millions Ball: <span class="circlesFb">'.htmlspecialchars($moTileBonus, ENT_QUOTES, 'UTF-8').'</span></span></p>';
                 
                 
                 /** LOTTO GAMES **/
@@ -3356,8 +3371,24 @@ echo '</a>';
                                 /** ALL OTHER GAMES **/
                 }else if($gId === 'MOH' || $gId === 'MOI'){
                     /** MO Millions Main / Double Play - 6 balls + Millions Ball stored in posSeven **/
+                    $moTileBonus2 = trim((string) $posSeven);
+                    if ($moTileBonus2 === '' || $moTileBonus2 === '0') {
+                        $_moTile2Raw = trim((string) $dResult);
+                        if (preg_match('/\bbonus[:\s]+(\d{1,2})\b/i', $_moTile2Raw, $_moTile2Bm)) {
+                            $_moTile2Val = (string) (int) $_moTile2Bm[1];
+                            $moTileBonus2 = ($_moTile2Val !== '0') ? $_moTile2Val : '';
+                        }
+                        if ($moTileBonus2 === '') {
+                            $_moTile2Parts = array_values(array_filter(
+                                preg_split('/[\s,\-\.]+/', $_moTile2Raw),
+                                static function ($t) { return is_numeric(trim($t)); }
+                            ));
+                            $_moTile27 = isset($_moTile2Parts[6]) ? trim($_moTile2Parts[6]) : '';
+                            $moTileBonus2 = ($_moTile27 !== '' && $_moTile27 !== '0') ? $_moTile27 : '';
+                        }
+                    }
                     echo '<p class="lstResult">Last Result: '.date('m-d-Y',strtotime($dDate)).'<br /><span class="circles">'.$posOne.'</span><span class="circles">'.$posTwo.'</span><span class="circles">'.$posThree.'</span><span class="circles">'.$posFour.'</span><span class="circles">'.$posFive.'</span><span class="circles">'.$posSix.'</span><br /></p>';
-                    echo '<p class="lstResult">Millions Ball: <span class="circlesPb">'.htmlspecialchars((string)$posSeven, ENT_QUOTES, 'UTF-8').'</span><br /></p>';
+                    echo '<p class="lstResult">Millions Ball: <span class="circlesPb">'.htmlspecialchars($moTileBonus2, ENT_QUOTES, 'UTF-8').'</span><br /></p>';
                 }else if (preg_match('/^\s*(Cash\s*Pop|Pop|Pick\s*1)/i', $gName)) {
                     // Single-ball: render strictly from draw_results to keep any leading zero
                     $num = trim((string)$dResult);

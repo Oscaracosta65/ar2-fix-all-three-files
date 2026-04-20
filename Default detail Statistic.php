@@ -898,11 +898,21 @@ echo '<p class="lstResult">'
     // Prefer the dedicated seventh column; fall back to parsing draw_results if empty or default '0'
     $mohBonus = trim((string) $posSeven);
     if ($mohBonus === '' || $mohBonus === '0') {
-        $drParts = array_values(array_filter(
-            preg_split('/\s*[-,\s\.]\s*/', trim((string) $draw_results)),
-            'strlen'
-        ));
-        $mohBonus = $drParts[6] ?? ''; // 7th token (index 6) in draw_results = Millions Ball
+        $_moRaw = trim((string) $draw_results);
+        // First: explicit "Bonus: XX" label (handles "06-25-26-27-32-39, Bonus: 06" format)
+        if (preg_match('/\bbonus[:\s]+(\d{1,2})\b/i', $_moRaw, $_moBm)) {
+            $_moVal = (string) (int) $_moBm[1];
+            $mohBonus = ($_moVal !== '0') ? $_moVal : '';
+        }
+        // Second: filter to numeric-only tokens and take 7th (index 6)
+        if ($mohBonus === '') {
+            $_moParts = array_values(array_filter(
+                preg_split('/[\s,\-\.]+/', $_moRaw),
+                static function ($t) { return is_numeric(trim($t)); }
+            ));
+            $_mo7 = isset($_moParts[6]) ? trim($_moParts[6]) : '';
+            $mohBonus = ($_mo7 !== '' && $_mo7 !== '0') ? $_mo7 : '';
+        }
     }
 echo '<p class="lstResult">'
     . '<span class="circles">' . htmlspecialchars((string) $posOne,   ENT_QUOTES, 'UTF-8') . '</span>'

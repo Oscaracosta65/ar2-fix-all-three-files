@@ -1,8 +1,8 @@
 <?php
 /**
- * LottoExpert.net � Results Intelligence
- * Game: Missouri MO1 � Pick 6 (numbers 01�44, no bonus ball)
- * Platform: Joomla 5.x � PHP 8.1+ � UTF-8 � ES5-only JavaScript
+ * LottoExpert.net - Results Intelligence
+ * Game: Missouri MO1 - Pick 6 (numbers 01-44, no bonus ball)
+ * Platform: Joomla 5.x - PHP 8.1+ - UTF-8 - ES5-only JavaScript
  *
  * GAME CONFIG:
  *   game_id      = MO1
@@ -12,10 +12,10 @@
  *   archive      = /lottery-archives-pick6
  *
  * UPSTREAM VARIABLES REQUIRED:
- *   $stateName   (string) � full state name
- *   $stateAbrev  (string) � state abbreviation
- *   $gName       (string) � game name
- *   $dbCol       (string) � database table name
+ *   $stateName   (string) - full state name
+ *   $stateAbrev  (string) - state abbreviation
+ *   $gName       (string) - game name
+ *   $dbCol       (string) - database table name
  */
 
 defined('_JEXEC') or die;
@@ -31,7 +31,7 @@ $input = $app->input;
 $db    = Factory::getDbo();
 $user  = Factory::getUser();
 
-/* -- Game configuration � MO1 Pick 6, range 01�44, no bonus --------------- */
+/* -- Game configuration - MO1 Pick 6, range 01-44, no bonus --------------- */
 // When included from Default detail Statistic.php, $gId is already set by the
 // parent (e.g. 'MOH' or 'MOI'). Capture it before this file overwrites $gId.
 $_parentGid   = (isset($gId) && $gId !== '') ? (string) $gId : 'MO1';
@@ -44,7 +44,7 @@ $mainBallMax   = 44;
 $hasBonusBall  = $isMoMillions;
 $bonusBallCol  = 'seventh'; // Millions Ball column for MOH / MOI
 $bonusBallMin  = $hasBonusBall ? 1  : 0;
-$bonusBallMax  = $hasBonusBall ? 25 : 0; // Missouri Millions Ball pool: 01–25
+$bonusBallMax  = $hasBonusBall ? 25 : 0; // Missouri Millions Ball pool: 01-25
 $archiveRoute  = '/lottery-archives-pick6';
 $loadPosition  = 'Pick6Wheels';
 
@@ -56,10 +56,10 @@ $doc->addCustomTag('<link rel="alternate" hreflang="en" href="' . htmlspecialcha
 $doc->addCustomTag('<link rel="alternate" hreflang="x-default" href="' . htmlspecialchars($canonicalNoQuery, ENT_QUOTES, 'UTF-8') . '" />');
 
 if (isset($stateName, $gName) && (string) $stateName !== '' && (string) $gName !== '') {
-    $doc->setTitle('Results Intelligence � ' . (string) $stateName . ' ' . (string) $gName . ' | LottoExpert.net');
+    $doc->setTitle('Results Intelligence - ' . (string) $stateName . ' ' . (string) $gName . ' | LottoExpert.net');
     $doc->setDescription(
         (string) $stateName . ' ' . (string) $gName
-        . ' � number frequency, hot numbers, cold numbers, draw history recency, and analytical results intelligence.'
+        . ' - number frequency, hot numbers, cold numbers, draw history recency, and analytical results intelligence.'
         . ' Transparent lottery analysis on LottoExpert.net.'
     );
 }
@@ -105,10 +105,10 @@ function leFmtDate(?string $date): string
 function leFmtDateLong(?string $date): string
 {
     if (!$date) {
-        return '�';
+        return '-';
     }
     $ts = strtotime($date);
-    return ($ts === false) ? '�' : date('F j, Y', $ts);
+    return ($ts === false) ? '-' : date('F j, Y', $ts);
 }
 
 function lePad2(string $value): string
@@ -203,7 +203,7 @@ function leCommaList(array $items): string
         return $v !== '';
     }));
     if (empty($items)) {
-        return '�';
+        return '-';
     }
     return implode(', ', $items);
 }
@@ -320,14 +320,23 @@ $p6 = $lr ? trim((string) ($lr['sixth']  ?? '')) : '';
 $_raw7 = $hasBonusBall ? ($lr ? trim((string) ($lr['seventh'] ?? '')) : '') : '';
 $p7    = ($hasBonusBall && $_raw7 !== '' && $_raw7 !== '0') ? $_raw7 : '';
 // Fallback: parse draw_results for the Millions Ball when seventh column is empty or default '0'
-// With 6 main numbers in draw_results the Millions Ball is the 7th token (index 6)
+// Handles both "06-25-26-27-32-39-08" and "06-25-26-27-32-39, Bonus: 06" formats
 if ($hasBonusBall && $p7 === '' && $lr !== null) {
-    $_drParts = array_values(array_filter(
-        preg_split('/\s*[-,\s\.]\s*/', trim((string) ($lr['draw_results'] ?? ''))),
-        'strlen'
-    ));
-    $_dr7 = $_drParts[6] ?? '';
-    $p7 = ($_dr7 !== '' && $_dr7 !== '0' && is_numeric($_dr7)) ? $_dr7 : '';
+    $_drRaw = trim((string) ($lr['draw_results'] ?? ''));
+    // First try: explicit "Bonus: XX" label pattern
+    if (preg_match('/\bbonus[:\s]+(\d{1,2})\b/i', $_drRaw, $_bm)) {
+        $_bonusVal = (string) (int) $_bm[1];
+        $p7 = ($_bonusVal !== '0') ? $_bonusVal : '';
+    }
+    // Second try: filter numeric-only tokens and take 7th (index 6)
+    if ($p7 === '') {
+        $_drParts = array_values(array_filter(
+            preg_split('/[\s,\-\.]+/', $_drRaw),
+            static function ($t) { return is_numeric(trim($t)); }
+        ));
+        $_dr7 = isset($_drParts[6]) ? trim($_drParts[6]) : '';
+        $p7 = ($_dr7 !== '' && $_dr7 !== '0') ? $_dr7 : '';
+    }
 }
 
 $latestMainBalls = [$p1, $p2, $p3, $p4, $p5, $p6];
@@ -444,7 +453,7 @@ if (!empty($windowShiftOut)) {
     $windowChangeNarrative .= leCommaList(array_slice($windowShiftOut, 0, 2)) . ' looks more concentrated in the shorter recent view.';
 }
 
-/* -- Bonus ball (Millions Ball) frequency – MOH / MOI only --------------- */
+/* -- Bonus ball (Millions Ball) frequency - MOH / MOI only --------------- */
 $bonusCounts          = [];
 $bonusLastSeenIndex   = [];
 $bonusChartLabels     = [];
@@ -461,14 +470,22 @@ if ($hasBonusBall) {
     [$bonusCounts, $bonusLastSeenIndex] = leInitRange($bonusBallMin, $bonusBallMax);
 
     foreach ($rowsMain as $idx => $row) {
-        // Prefer the dedicated seventh column; fall back to draw_results token index 6
+        // Prefer the dedicated seventh column; fall back to draw_results
         $_rawB = trim((string) ($row[$bonusBallCol] ?? ''));
         if ($_rawB === '' || $_rawB === '0') {
-            $_drP  = array_values(array_filter(
-                preg_split('/\s*[-,\s\.]\s*/', trim((string) ($row['draw_results'] ?? ''))),
-                'strlen'
-            ));
-            $_rawB = (isset($_drP[6]) && is_numeric($_drP[6])) ? $_drP[6] : '';
+            $_drRaw2 = trim((string) ($row['draw_results'] ?? ''));
+            // Try explicit "Bonus: XX" label pattern first
+            if (preg_match('/\bbonus[:\s]+(\d{1,2})\b/i', $_drRaw2, $_bm2)) {
+                $_rawB = (string) (int) $_bm2[1];
+            }
+            // Fall back to 7th numeric-only token
+            if ($_rawB === '' || $_rawB === '0') {
+                $_drP = array_values(array_filter(
+                    preg_split('/[\s,\-\.]+/', $_drRaw2),
+                    static function ($t) { return is_numeric(trim($t)); }
+                ));
+                $_rawB = (isset($_drP[6]) && is_numeric($_drP[6])) ? trim($_drP[6]) : '';
+            }
         }
         if (!is_numeric($_rawB)) {
             continue;

@@ -1117,7 +1117,7 @@ if ($mohBonus !== '') {
                         . '</p>';
  
                  /** Arkansas LOTTO GAMES **/
-                }else if($gName === 'LOTTO' && $stateName === 'Arkansas'){
+                }else if($gId === 'AR2' || ($gName === 'LOTTO' && $stateName === 'Arkansas')){
                     
                     echo '<p class="lstResult">'
                         . '<span class="circles">' . htmlspecialchars((string) $posOne, ENT_QUOTES, 'UTF-8') . '</span>'
@@ -1548,8 +1548,7 @@ if ($gId === '801') {
             include "anhisIL4.php";
         /** Straight 6+1 with 40+40 numbers - Arkansas - Lotto **/
         }else if($gId === 'AR2'){
-            // AR2 top-card already rendered by the parent (line ~1119 above).
-            // anhisAR2.php is the Arkansas state hub; do not include it here.
+            include "anhisAR2.php";
         /** Straight 4+1 with 35 and Cash Ball 25 numbers - KY Cash Ball **/
         }else if($gId === 'KY1'){ 
             include "anhisKY1.php";            

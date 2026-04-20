@@ -892,8 +892,8 @@ echo '<p class="lstResult">'
     . '<span class="circlesPb">' . htmlspecialchars((string) $posSeven, ENT_QUOTES, 'UTF-8') . '</span>'
     . '</span>';
 
-/** MO Millions Main (MOH) and Double Play (MOI) - 5 main balls + Millions Ball **/
-/** DB layout: first-fifth = main numbers, sixth = literal "bonus" label, seventh = Millions Ball **/
+/** MO Millions Main (MOH) and Double Play (MOI) - 6 main balls + Millions Ball **/
+/** DB layout: first-sixth = 6 main numbers, seventh = Millions Ball **/
 } elseif ($gId === 'MOH' || $gId === 'MOI') {
     // Prefer the dedicated seventh column; fall back to parsing draw_results if empty or default '0'
     $mohBonus = trim((string) $posSeven);
@@ -902,7 +902,7 @@ echo '<p class="lstResult">'
             preg_split('/\s*[-,\s\.]\s*/', trim((string) $draw_results)),
             'strlen'
         ));
-        $mohBonus = $drParts[5] ?? ''; // 6th token (index 5) in draw_results = Millions Ball
+        $mohBonus = $drParts[6] ?? ''; // 7th token (index 6) in draw_results = Millions Ball
     }
 echo '<p class="lstResult">'
     . '<span class="circles">' . htmlspecialchars((string) $posOne,   ENT_QUOTES, 'UTF-8') . '</span>'
@@ -910,6 +910,7 @@ echo '<p class="lstResult">'
     . '<span class="circles">' . htmlspecialchars((string) $posThree, ENT_QUOTES, 'UTF-8') . '</span>'
     . '<span class="circles">' . htmlspecialchars((string) $posFour,  ENT_QUOTES, 'UTF-8') . '</span>'
     . '<span class="circles">' . htmlspecialchars((string) $posFive,  ENT_QUOTES, 'UTF-8') . '</span>'
+    . '<span class="circles">' . htmlspecialchars((string) $posSix,   ENT_QUOTES, 'UTF-8') . '</span>'
     . '</p>';
 if ($mohBonus !== '') {
     echo '<span class="le-result-meta" aria-label="Millions Ball">'

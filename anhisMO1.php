@@ -43,6 +43,8 @@ $mainBallMin   = 1;
 $mainBallMax   = 44;
 $hasBonusBall  = $isMoMillions;
 $bonusBallCol  = 'seventh'; // Millions Ball column for MOH / MOI
+$bonusBallMin  = $hasBonusBall ? 1  : 0;
+$bonusBallMax  = $hasBonusBall ? 25 : 0; // Missouri Millions Ball pool: 01–25
 $archiveRoute  = '/lottery-archives-pick6';
 $loadPosition  = 'Pick6Wheels';
 
@@ -440,6 +442,75 @@ if (!empty($windowShiftIn)) {
 }
 if (!empty($windowShiftOut)) {
     $windowChangeNarrative .= leCommaList(array_slice($windowShiftOut, 0, 2)) . ' looks more concentrated in the shorter recent view.';
+}
+
+/* -- Bonus ball (Millions Ball) frequency – MOH / MOI only --------------- */
+$bonusCounts          = [];
+$bonusLastSeenIndex   = [];
+$bonusChartLabels     = [];
+$bonusChartValues     = [];
+$bonusRecencyValues   = [];
+$topActiveBonusKeys   = [];
+$topActiveBonusLabels = [];
+$topActiveBonusValues = [];
+$quietestBonusKeys    = [];
+$quietestBonusLabels  = [];
+$quietestBonusValues  = [];
+
+if ($hasBonusBall) {
+    [$bonusCounts, $bonusLastSeenIndex] = leInitRange($bonusBallMin, $bonusBallMax);
+
+    foreach ($rowsMain as $idx => $row) {
+        // Prefer the dedicated seventh column; fall back to draw_results token index 6
+        $_rawB = trim((string) ($row[$bonusBallCol] ?? ''));
+        if ($_rawB === '' || $_rawB === '0') {
+            $_drP  = array_values(array_filter(
+                preg_split('/\s*[-,\s\.]\s*/', trim((string) ($row['draw_results'] ?? ''))),
+                'strlen'
+            ));
+            $_rawB = (isset($_drP[6]) && is_numeric($_drP[6])) ? $_drP[6] : '';
+        }
+        if (!is_numeric($_rawB)) {
+            continue;
+        }
+        $ball = lePad2((string) (int) $_rawB);
+        if ($ball === '' || !isset($bonusCounts[$ball])) {
+            continue;
+        }
+        $bonusCounts[$ball]++;
+        if ($bonusLastSeenIndex[$ball] === null) {
+            $bonusLastSeenIndex[$ball] = $idx;
+        }
+    }
+
+    $bonusChartLabels = leBuildNaturalLabels($bonusBallMin, $bonusBallMax);
+    foreach ($bonusChartLabels as $label) {
+        $bonusChartValues[]   = (int) ($bonusCounts[$label] ?? 0);
+        $bonusRecencyValues[] = (int) (
+            ($bonusLastSeenIndex[$label] ?? null) === null
+                ? ($nodCurrentMain + 1)
+                : ((int) $bonusLastSeenIndex[$label] + 1)
+        );
+    }
+
+    $topActiveBonusKeys   = leTopKeysByValue($bonusCounts, 10, false);
+    $topActiveBonusLabels = $topActiveBonusKeys;
+    foreach ($topActiveBonusKeys as $key) {
+        $topActiveBonusValues[] = (int) ($bonusCounts[$key] ?? 0);
+    }
+
+    $_quietBonusCands = [];
+    foreach ($bonusCounts as $key => $count) {
+        $_quietBonusCands[$key] = ($bonusLastSeenIndex[$key] === null)
+            ? ($nodCurrentMain + 1)
+            : ((int) $bonusLastSeenIndex[$key] + 1);
+    }
+    arsort($_quietBonusCands, SORT_NUMERIC);
+    $quietestBonusKeys = array_slice(array_keys($_quietBonusCands), 0, 10);
+    foreach ($quietestBonusKeys as $key) {
+        $quietestBonusLabels[] = $key;
+        $quietestBonusValues[] = (int) $_quietBonusCands[$key];
+    }
 }
 
 /* -- Draw history for current draw (all 6 main balls) -------------------- */
@@ -1362,6 +1433,26 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
 
 .skai-method-note strong{color:var(--deep-navy)}
 
+.skai-pill--bonus{
+  background:linear-gradient(180deg,#FF4444 0%,#CC0000 100%);
+  color:#FFFFFF;
+  border:1px solid rgba(150,0,0,.35);
+  box-shadow:0 8px 16px rgba(150,0,0,.14);
+}
+
+.skai-history-item--bonus{
+  background:linear-gradient(180deg, #FFF5F5 0%, #FFF0F0 100%);
+  border-color:rgba(180,0,0,.18);
+}
+
+.skai-history-item--bonus .skai-history-name{
+  color:#A61D2D;
+}
+
+.skai-history-item--bonus .skai-history-badge{
+  background:var(--grad-ember);
+}
+
 @media (max-width:1080px){
   .skai-hero-top{
     grid-template-columns:96px minmax(0,1fr);
@@ -1540,6 +1631,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
     <a class="skai-tab" href="#frequency-deep-dive">Frequency</a>
     <a class="skai-tab" href="#recency-deep-dive">Recency</a>
     <a class="skai-tab" href="#tables">Tables</a>
+    <?php if ($hasBonusBall) : ?><a class="skai-tab" href="#millions-ball">Millions Ball</a><?php endif; ?>
     <a class="skai-tab" href="#tools">Advanced Tools</a>
   </nav>
 
@@ -1612,7 +1704,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
           <div class="skai-card-body">
             <div class="skai-history-list">
               <?php foreach ($drawHistoryRows as $row) : ?>
-                <div class="skai-history-item">
+                <div class="skai-history-item<?php echo $row['isBonus'] ? ' skai-history-item--bonus' : ''; ?>">
                   <div class="skai-history-name"><?php echo htmlspecialchars((string) $row['label'], ENT_QUOTES, 'UTF-8'); ?></div>
                   <div class="skai-history-date">
                     <?php if (!empty($row['prevDate'])) : ?>
@@ -1877,6 +1969,92 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
     </div>
   </section>
 
+  <!-- -------------------- MILLIONS BALL (MOH / MOI) ------------------- -->
+  <?php if ($hasBonusBall) : ?>
+  <section id="millions-ball" class="skai-section" aria-labelledby="mb-title">
+    <div class="skai-section-head">
+      <div>
+        <h2 id="mb-title" class="skai-section-title">Millions Ball frequency</h2>
+        <p class="skai-section-sub">
+          The Millions Ball is drawn independently from a separate pool (01&ndash;<?php echo str_pad((string) $bonusBallMax, 2, '0', STR_PAD_LEFT); ?>).
+          These charts and the table below cover the same draw window as the main-number analysis above.
+          Recency values show the number of draws since each Millions Ball value last appeared.
+        </p>
+      </div>
+    </div>
+
+    <div class="skai-section-body">
+      <div class="skai-two-col">
+        <div class="skai-card">
+          <div class="skai-card-head" style="background:var(--grad-ember)">
+            Full Millions Ball distribution
+            <span class="skai-card-sub">All values 01&ndash;<?php echo str_pad((string) $bonusBallMax, 2, '0', STR_PAD_LEFT); ?> across the last <?php echo (int) $nodCurrentMain; ?> drawings</span>
+          </div>
+          <div class="skai-card-body">
+            <div class="skai-chart-shell">
+              <div class="skai-chart-frame skai-chart-frame--tall">
+                <canvas id="bonusFreqChart" aria-label="Millions Ball frequency chart" role="img"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="skai-card">
+          <div class="skai-card-head" style="background:linear-gradient(135deg,#A61D2D 0%,#0A1A33 100%)">
+            Millions Ball recency
+            <span class="skai-card-sub">Distance since last appearance for each Millions Ball value</span>
+          </div>
+          <div class="skai-card-body">
+            <div class="skai-chart-shell">
+              <div class="skai-chart-frame skai-chart-frame--tall">
+                <canvas id="bonusRecencyChart" aria-label="Millions Ball recency chart" role="img"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="skai-card" style="margin-top:14px">
+        <div class="skai-card-head" style="background:var(--grad-ember)">
+          Millions Ball table
+          <span class="skai-card-sub">Exact counts and recency for all values 01&ndash;<?php echo str_pad((string) $bonusBallMax, 2, '0', STR_PAD_LEFT); ?> across the last <?php echo (int) $nodCurrentMain; ?> drawings</span>
+        </div>
+
+        <div class="skai-table-wrap">
+          <table class="skai-table" aria-label="Millions Ball frequency table">
+            <thead>
+              <tr>
+                <th>Millions Ball</th>
+                <th>Drawn Times</th>
+                <th>Last Drawn</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php for ($i = $bonusBallMin; $i <= $bonusBallMax; $i++) : ?>
+                <?php
+                $mbNumber      = ($i < 10) ? '0' . $i : (string) $i;
+                $mbCount       = (int) ($bonusCounts[$mbNumber] ?? 0);
+                [$mbSort, $mbLabel] = leDrawingsAgoLabel($bonusLastSeenIndex[$mbNumber] ?? null, (int) $nodCurrentMain);
+                ?>
+                <tr>
+                  <td><span class="skai-pill skai-pill--bonus"><?php echo htmlspecialchars($mbNumber, ENT_QUOTES, 'UTF-8'); ?></span></td>
+                  <td><?php echo $mbCount; ?> X</td>
+                  <td data-sort="<?php echo (int) $mbSort; ?>"><?php echo htmlspecialchars($mbLabel, ENT_QUOTES, 'UTF-8'); ?></td>
+                </tr>
+              <?php endfor; ?>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="skai-note" style="margin:14px 16px 16px">
+          The Millions Ball is drawn from a separate pool (01&ndash;<?php echo str_pad((string) $bonusBallMax, 2, '0', STR_PAD_LEFT); ?>) and does not mix with the six main-number positions.
+          Frequency and recency here reflect only the Millions Ball column in the draw history.
+        </div>
+      </div>
+    </div>
+  </section>
+  <?php endif; ?>
+
   <!-- ---------------------- METHOD NOTE ------------------------------- -->
   <section class="skai-section" aria-labelledby="method-title">
     <div class="skai-section-head">
@@ -1909,13 +2087,17 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
   'use strict';
 
   var chartData = {
-    topActiveLabels:   <?php echo json_encode(array_values($topActiveLabels)); ?>,
-    topActiveValues:   <?php echo json_encode(array_values($topActiveValues)); ?>,
-    quietLabels:       <?php echo json_encode(array_values($quietestLabels)); ?>,
-    quietValues:       <?php echo json_encode(array_values($quietestValues)); ?>,
-    mainLabels:        <?php echo json_encode(array_values($mainChartLabels)); ?>,
-    mainValues:        <?php echo json_encode(array_values($mainChartValues)); ?>,
-    mainRecencyValues: <?php echo json_encode(array_values($mainRecencyValues)); ?>
+    topActiveLabels:      <?php echo json_encode(array_values($topActiveLabels)); ?>,
+    topActiveValues:      <?php echo json_encode(array_values($topActiveValues)); ?>,
+    quietLabels:          <?php echo json_encode(array_values($quietestLabels)); ?>,
+    quietValues:          <?php echo json_encode(array_values($quietestValues)); ?>,
+    mainLabels:           <?php echo json_encode(array_values($mainChartLabels)); ?>,
+    mainValues:           <?php echo json_encode(array_values($mainChartValues)); ?>,
+    mainRecencyValues:    <?php echo json_encode(array_values($mainRecencyValues)); ?>,
+    hasBonusBall:         <?php echo $hasBonusBall ? 'true' : 'false'; ?>,
+    bonusLabels:          <?php echo json_encode(array_values($bonusChartLabels)); ?>,
+    bonusValues:          <?php echo json_encode(array_values($bonusChartValues)); ?>,
+    bonusRecencyValues:   <?php echo json_encode(array_values($bonusRecencyValues)); ?>
   };
 
   /* -- Lazy-load Chart.js if not already present ----------------------- */
@@ -2081,6 +2263,67 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
           }
         }
       });
+    }
+
+    if (chartData.hasBonusBall) {
+      var bonusFreqCanvas    = document.getElementById('bonusFreqChart');
+      var bonusRecCanvas     = document.getElementById('bonusRecencyChart');
+
+      if (bonusFreqCanvas && bonusFreqCanvas.getContext) {
+        new Chart(bonusFreqCanvas.getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels:   chartData.bonusLabels,
+            datasets: [{
+              data:            chartData.bonusValues,
+              borderWidth:     0,
+              borderRadius:    6,
+              barThickness:    12,
+              maxBarThickness: 14,
+              backgroundColor: '#CC0000'
+            }]
+          },
+          options: commonBarOptions(true)
+        });
+      }
+
+      if (bonusRecCanvas && bonusRecCanvas.getContext) {
+        new Chart(bonusRecCanvas.getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels:   chartData.bonusLabels,
+            datasets: [{
+              data:            chartData.bonusRecencyValues,
+              borderWidth:     0,
+              borderRadius:    6,
+              barThickness:    12,
+              maxBarThickness: 14,
+              backgroundColor: '#F5A623'
+            }]
+          },
+          options: {
+            responsive:          true,
+            maintainAspectRatio: false,
+            indexAxis:           'y',
+            animation:           false,
+            plugins: {
+              legend:  { display: false },
+              tooltip: { enabled: true }
+            },
+            scales: {
+              x: {
+                beginAtZero: true,
+                ticks: { precision: 0, font: { weight: '700' } },
+                grid:  { color: 'rgba(10,26,51,.08)' }
+              },
+              y: {
+                ticks: { autoSkip: false, font: { weight: '700' } },
+                grid:  { display: false }
+              }
+            }
+          }
+        });
+      }
     }
   }
 

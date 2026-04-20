@@ -37,8 +37,10 @@ $user  = Factory::getUser();
 $_parentGid   = (isset($gId) && $gId !== '') ? (string) $gId : 'MO1';
 $isMoMillions = ($_parentGid === 'MOH' || $_parentGid === 'MOI');
 $gameId        = $isMoMillions ? $_parentGid : 'MO1';
-$mainBallCols  = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth'];
-$mainBallCount = 6;
+$mainBallCols  = $isMoMillions
+    ? ['first', 'second', 'third', 'fourth', 'fifth']
+    : ['first', 'second', 'third', 'fourth', 'fifth', 'sixth'];
+$mainBallCount = $isMoMillions ? 5 : 6;
 $mainBallMin   = 1;
 $mainBallMax   = 44;
 $hasBonusBall  = $isMoMillions;
@@ -317,17 +319,18 @@ $p6 = $lr ? trim((string) ($lr['sixth']  ?? '')) : '';
 // Treat '0' (DB default for non-bonus rows) same as empty so the fallback fires
 $_raw7 = $hasBonusBall ? ($lr ? trim((string) ($lr['seventh'] ?? '')) : '') : '';
 $p7    = ($hasBonusBall && $_raw7 !== '' && $_raw7 !== '0') ? $_raw7 : '';
-// Fallback: parse draw_results for the 7th token when seventh column is empty or default '0'
+// Fallback: parse draw_results for the Millions Ball when seventh column is empty or default '0'
+// With 5 main numbers in draw_results the Millions Ball is the 6th token (index 5)
 if ($hasBonusBall && $p7 === '' && $lr !== null) {
     $_drParts = array_values(array_filter(
         preg_split('/\s*[-,\s\.]\s*/', trim((string) ($lr['draw_results'] ?? ''))),
         'strlen'
     ));
-    $_dr7 = $_drParts[6] ?? '';
-    $p7 = ($_dr7 !== '' && $_dr7 !== '0') ? $_dr7 : '';
+    $_dr7 = $_drParts[5] ?? '';
+    $p7 = ($_dr7 !== '' && $_dr7 !== '0' && is_numeric($_dr7)) ? $_dr7 : '';
 }
 
-$latestMainBalls = [$p1, $p2, $p3, $p4, $p5, $p6];
+$latestMainBalls = $isMoMillions ? [$p1, $p2, $p3, $p4, $p5] : [$p1, $p2, $p3, $p4, $p5, $p6];
 $logo = (isset($stateAbrev, $gName))
     ? leResolveLogo((string) $stateAbrev, (string) $gName)
     : ['exists' => false, 'url' => ''];
@@ -1442,7 +1445,9 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
             <span class="skai-ball skai-ball--main"><?php echo htmlspecialchars(lePad2($p3), ENT_QUOTES, 'UTF-8'); ?></span>
             <span class="skai-ball skai-ball--main"><?php echo htmlspecialchars(lePad2($p4), ENT_QUOTES, 'UTF-8'); ?></span>
             <span class="skai-ball skai-ball--main"><?php echo htmlspecialchars(lePad2($p5), ENT_QUOTES, 'UTF-8'); ?></span>
+            <?php if (!$isMoMillions) : ?>
             <span class="skai-ball skai-ball--main"><?php echo htmlspecialchars(lePad2($p6), ENT_QUOTES, 'UTF-8'); ?></span>
+            <?php endif; ?>
             <?php if ($hasBonusBall && $p7 !== '' && $p7 !== '0') : ?>
             <span class="skai-ball-sep" aria-hidden="true">+</span>
             <span class="skai-ball skai-ball--bonus"><?php echo htmlspecialchars(lePad2($p7), ENT_QUOTES, 'UTF-8'); ?></span>
